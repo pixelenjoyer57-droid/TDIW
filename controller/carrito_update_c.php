@@ -3,6 +3,8 @@
 session_start();
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../model/carrito_m.php';
+
 if (!isset($_SESSION['usuario_id'])) {
     echo json_encode(['success' => false, 'error' => 'Sesión expirada']);
     exit;
@@ -10,43 +12,49 @@ if (!isset($_SESSION['usuario_id'])) {
 
 $input = json_decode(file_get_contents('php://input'), true);
 $producto_id = $input['producto_id'] ?? null;
-$accion = $input['accion'] ?? null; // 'sumar', 'restar', 'eliminar'
+$accion = $input['accion'] ?? null;
+$usuario_id = $_SESSION['usuario_id'];
 
 if (!$producto_id || !$accion) {
     echo json_encode(['success' => false, 'error' => 'Datos inválidos']);
     exit;
 }
 
-if (!isset($_SESSION['carrito'][$producto_id])) {
-    echo json_encode(['success' => false, 'error' => 'Producto no encontrado en el carrito']);
-    exit;
-}
+// 1. Obtener estado actual del carrito desde la BD
+$items = getCarritoItems($usuario_id);
+$item_actual = null;
 
-// Lógica de actualización
-if ($accion === 'eliminar') {
-    unset($_SESSION['carrito'][$producto_id]);
-} elseif ($accion === 'sumar') {
-    $_SESSION['carrito'][$producto_id]['cantidad']++;
-} elseif ($accion === 'restar') {
-    if ($_SESSION['carrito'][$producto_id]['cantidad'] > 1) {
-        $_SESSION['carrito'][$producto_id]['cantidad']--;
-    } else {
-        // Si es 1 y restamos, lo eliminamos (opcional, o mostrar aviso)
-        unset($_SESSION['carrito'][$producto_id]);
+foreach ($items as $item) {
+    if ($item['id_producto'] == $producto_id) {
+        $item_actual = $item;
+        break;
     }
 }
 
-// Recalcular totales para devolver al frontend
-$nuevoTotal = 0;
-$totalItems = 0;
-foreach ($_SESSION['carrito'] as $item) {
-    $nuevoTotal += $item['precio'] * $item['cantidad'];
-    $totalItems += $item['cantidad'];
+if (!$item_actual) {
+    echo json_encode(['success' => false, 'error' => 'Producto no encontrado']);
+    exit;
 }
 
-echo json_encode([
-    'success' => true, 
-    'nuevo_total_global' => number_format($nuevoTotal, 2),
-    'items_count' => $totalItems
-]);
+// 2. Calcular nueva cantidad
+$nueva_cantidad = $item_actual['cantidad'];
+
+if ($accion === 'sumar') {
+    $nueva_cantidad++;
+} elseif ($accion === 'restar') {
+    $nueva_cantidad--;
+} elseif ($accion === 'eliminar') {
+    $nueva_cantidad = 0;
+}
+
+// 3. Aplicar cambios en BD
+if ($nueva_cantidad <= 0) {
+    eliminarProductoUsuario($usuario_id, $producto_id);
+} else {
+    actualizarCantidadProducto($usuario_id, $producto_id, $nueva_cantidad);
+}
+
+// 4. Recalcular totales para respuesta rápida (opcional, o recargar página)
+// Para simplificar, devolvemos success y dejamos que el frontend recargue
+echo json_encode(['success' => true]);
 ?>
