@@ -42,6 +42,10 @@ switch ($accio) {
         include __DIR__ . '/controller/checkout_c.php';
         break;
     
+    case 'mis-pedidos':
+        include __DIR__ . '/controller/mis_pedidos_c.php'; // Tendrás que crear este controlador simple
+        break;
+    
     default:
         include __DIR__ . '/resource/portada.php';
         break;

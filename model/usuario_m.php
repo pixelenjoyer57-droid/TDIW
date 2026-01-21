@@ -134,5 +134,11 @@ function eliminarUsuario($usuario_id) {
     if (!$res) throw new Exception("Error al eliminar");
 }
 
+function actualizarImagenUsuario($id, $ruta) {
+    global $conn;
+    $sql = "UPDATE usuario SET imagen_perfil = $1 WHERE id = $2";
+    pg_query_params($conn, $sql, [$ruta, $id]);
+}
+
 ?>
 

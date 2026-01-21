@@ -47,6 +47,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="index.php?accio=mis-pedidos" class="dropdown-item">
+                                📦 Mis Pedidos
+                            </a>
+                        </li>
+                        <li>
                             <a href="index.php?accio=logout" class="dropdown-item logout">
                                 🚪 Cerrar Sesión
                             </a>

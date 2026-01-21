@@ -52,8 +52,8 @@ function getCarritoItems($usuario_id) {
     
     if (!$carrito) return [];
     
-    // Obtenemos los productos con sus datos (JOIN)
-    $sqlItems = "SELECT i.id as item_id, i.cantidad, p.nombre, p.precio, p.url_imagen, (p.precio * i.cantidad) as subtotal
+    // HE AÑADIDO 'p.id as id_producto' AQUÍ ABAJO:
+    $sqlItems = "SELECT i.id as item_id, p.id as id_producto, i.cantidad, p.nombre, p.precio, p.url_imagen, (p.precio * i.cantidad) as subtotal
                  FROM item_carrito i
                  JOIN producto p ON i.id_producto = p.id
                  WHERE i.id_carrito = $1
