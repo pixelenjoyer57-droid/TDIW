@@ -61,28 +61,6 @@
     </div>
 </div>
 
-<script>
-// Validación en Cliente de Contraseñas
-document.addEventListener('DOMContentLoaded', function() {
-    const pass1 = document.getElementById('contrasena');
-    const pass2 = document.getElementById('contrasena_confirmar');
-    const errorMsg = document.getElementById('pass-error');
-    
-    function checkPasswords() {
-        if (pass2.value && pass1.value !== pass2.value) {
-            pass2.setCustomValidity("Las contraseñas no coinciden");
-            errorMsg.style.display = 'block';
-        } else {
-            pass2.setCustomValidity("");
-            errorMsg.style.display = 'none';
-        }
-    }
-
-    pass1.addEventListener('input', checkPasswords);
-    pass2.addEventListener('input', checkPasswords);
-});
-</script>
-
 <style>
 .registre-container { max-width: 600px; margin: 2rem auto; }
 .form-wrapper { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }

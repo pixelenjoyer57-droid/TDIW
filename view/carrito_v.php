@@ -91,28 +91,9 @@
 </div>
 
 <style>
-/* Estilos mínimos para los botones nuevos */
+/* CSS local para botones del carrito */
 .btn-qty { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #ccc; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 .btn-qty:hover { background: #f0f0f0; border-color: #999; }
 .btn-borrar { background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 .btn-borrar:hover { transform: scale(1.1); }
 </style>
-
-<script>
-function updateCart(id, accion) {
-    fetch('controller/carrito_update_c.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ producto_id: id, accion: accion })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if(data.success) {
-            location.reload(); 
-        } else {
-            alert('Error: ' + (data.error || 'Desconocido'));
-        }
-    })
-    .catch(err => console.error(err));
-}
-</script>

@@ -1,4 +1,3 @@
-<!-- view/detall_producte_v.php -->
 <div class="producto-detalle">
     <div class="breadcrumb">
         <a href="index.php">Inicio</a> / 
@@ -41,7 +40,7 @@
                 <form class="form-agregar-carrito">
                     <div class="cantidad-selector">
                         <label for="cantidad">Cantidad:</label>
-                        <select id="cantidad" name="cantidad">
+                        <select id="cantidad-detalle" name="cantidad">
                             <?php for ($i = 1; $i <= min(10, $producto['stock']); $i++): ?>
                                 <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                             <?php endfor; ?>
@@ -49,7 +48,7 @@
                     </div>
                     
                     <button type="button" class="btn btn-primary btn-large" 
-                            onclick="agregarAlCarrito(<?php echo $producto['id']; ?>)">
+                            onclick="addToCart(<?php echo $producto['id']; ?>, true)">
                         🛒 Agregar al Carrito
                     </button>
                 </form>
@@ -61,52 +60,3 @@
         </div>
     </div>
 </div>
-
-<script>
-function agregarAlCarrito(productoId) {
-    const cantidadSelect = document.getElementById('cantidad');
-    const cantidad = cantidadSelect ? cantidadSelect.value : 1;
-    const btn = document.querySelector('.btn-primary'); // Seleccionamos el botón para dar feedback
-
-    // Feedback visual inmediato
-    const textoOriginal = btn.innerText;
-    btn.innerText = "Añadiendo...";
-    btn.disabled = true;
-
-    fetch('controller/carrito_add_c.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            producto_id: productoId,
-            cantidad: parseInt(cantidad)
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            btn.innerText = "✅ ¡Añadido!";
-            btn.style.backgroundColor = "var(--color-success)";
-            setTimeout(() => {
-                btn.innerText = textoOriginal;
-                btn.disabled = false;
-                btn.style.backgroundColor = ""; // Volver al color original
-            }, 2000);
-        } else {
-            alert("Error: " + data.error);
-            btn.innerText = textoOriginal;
-            btn.disabled = false;
-            // Si el error es por no login, redirigir
-            if(data.error === 'Debes iniciar sesión') {
-                window.location.href = 'index.php?accio=login';
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        btn.innerText = textoOriginal;
-        btn.disabled = false;
-    });
-}
-</script>

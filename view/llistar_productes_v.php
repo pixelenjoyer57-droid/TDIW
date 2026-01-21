@@ -65,33 +65,3 @@
         </div>
     <?php endif; ?>
 </div>
-
-<script>
-// Función AJAX para añadir al carrito
-function addToCart(productoId) {
-    const cantidadInput = document.getElementById('qty-' + productoId);
-    const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 1;
-
-    fetch('controller/carrito_add_c.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            producto_id: productoId,
-            cantidad: cantidad
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ ¡Producto añadido al carrito!');
-            location.reload(); // Recargar para actualizar el contador del menú
-        } else {
-            alert('❌ Error: ' + (data.error || 'No se pudo añadir. Asegúrate de iniciar sesión.'));
-            if(data.error === 'Debes iniciar sesión') {
-                window.location.href = 'index.php?accio=login';
-            }
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-</script>

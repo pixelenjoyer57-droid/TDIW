@@ -1,4 +1,3 @@
-<!-- view/llistar_categories_v.php -->
 <div class="categories-container">
     <h1>📋 Nuestras Categorías</h1>
     <p class="subtitle">Elige tu tipo de comida favorita</p>
