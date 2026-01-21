@@ -1,8 +1,43 @@
 // resource/js/spa.js
 
 // ======================================================
-// FUNCIONES GLOBALES (Deben estar FUERA del DOMContentLoaded)
+// FUNCIONES GLOBALES
 // ======================================================
+
+/**
+ * Fetches the current cart status and updates the navbar badge
+ */
+function updateNavbarCart() {
+    fetch('controller/carrito_status_c.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const cartLink = document.querySelector('.cart-link');
+                let badge = document.querySelector('.cart-badge');
+                
+                // Check if we have items
+                if (data.total_items > 0) {
+                    const priceFormatted = parseFloat(data.total_precio).toFixed(2);
+                    const text = `${data.total_items} | ${priceFormatted}€`;
+                    
+                    if (badge) {
+                        // Update existing badge
+                        badge.textContent = text;
+                    } else if (cartLink) {
+                        // Create badge if it doesn't exist
+                        badge = document.createElement('span');
+                        badge.className = 'cart-badge';
+                        badge.textContent = text;
+                        cartLink.appendChild(badge);
+                    }
+                } else {
+                    // Remove badge if cart is empty
+                    if (badge) badge.remove();
+                }
+            }
+        })
+        .catch(err => console.error('Error updating navbar:', err));
+}
 
 function addToCart(productoId, isDetail = false) {
     let cantidad = 1;
@@ -25,18 +60,18 @@ function addToCart(productoId, isDetail = false) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Actualización visual simple (puedes mejorarla actualizando solo el badge)
             alert('✅ ¡Producto añadido al carrito!');
             
-            // Recargamos SOLO el header si tuviéramos una función para ello,
-            // o recargamos la página si no hay más remedio (rompe un poco la SPA pero asegura consistencia)
-            // Para SPA pura: Deberías tener una función updateCartBadge() que haga fetch al header.
-            // Por ahora, location.reload() es lo más seguro para sincronizar el menú.
-            location.reload(); 
+            // 1. Update the Navbar Badge without reloading the page
+            updateNavbarCart();
+            
+            // 2. If we are currently on the cart page, reload the content too
+            if (window.location.href.includes('accio=carrito')) {
+                cargarContenido('index.php?accio=carrito', false);
+            }
         } else {
             alert('❌ Error: ' + (data.error || 'No se pudo añadir.'));
             if(data.error === 'Debes iniciar sesión') {
-                // Redirigir al login usando la SPA
                 cargarContenido('index.php?accio=login');
             }
         }
@@ -53,9 +88,11 @@ function updateCart(id, accion) {
     .then(r => r.json())
     .then(data => {
         if(data.success) {
-            // Recargamos el contenido actual (el carrito)
+            // 1. Reload the cart table (Main Content)
             cargarContenido('index.php?accio=carrito', false); 
-            // Nota: Si el badge del menú debe cambiar, necesitarías actualizarlo aparte
+            
+            // 2. Update the Navbar Badge
+            updateNavbarCart();
         } else {
             alert('Error: ' + (data.error || 'Desconocido'));
         }
@@ -74,12 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
         
-        // Verificamos si es un enlace interno válido para SPA
         if (link && 
             link.href.includes(window.location.origin) && 
             !link.getAttribute('target') &&
             !link.classList.contains('no-spa') &&
-            !link.href.includes('#')) { // Ignorar anclas internas
+            !link.href.includes('#')) { 
             
             e.preventDefault(); 
             cargarContenido(link.href);
@@ -95,13 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. Manejar botones de Atrás/Adelante del navegador
     window.addEventListener('popstate', () => {
         cargarContenido(window.location.href, false);
     });
 });
 
-// FUNCIÓN CORE: Cargar contenido
 async function cargarContenido(url, pushToHistory = true) {
     const mainContainer = document.querySelector('main.container');
     if(mainContainer) mainContainer.style.opacity = '0.5';
@@ -118,8 +152,6 @@ async function cargarContenido(url, pushToHistory = true) {
                 mainContainer.innerHTML = html;
                 mainContainer.style.opacity = '1';
                 
-                // Re-ejecutar scripts que vengan en el HTML (si los hubiera)
-                // Aunque tu enfoque actual usa funciones globales, esto es buena práctica
                 const scripts = mainContainer.querySelectorAll("script");
                 scripts.forEach(script => eval(script.innerText));
             }
@@ -145,7 +177,6 @@ async function handleFormSubmit(form) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
-        // Si la URL cambió (redirección de PHP), recargamos para actualizar estado (Login/Logout)
         if (response.url !== form.action && !response.url.includes('accio=')) {
              window.location.reload();
              return;
@@ -154,6 +185,9 @@ async function handleFormSubmit(form) {
         const html = await response.text();
         const mainContainer = document.querySelector('main.container');
         if(mainContainer) mainContainer.innerHTML = html;
+        
+        // After forms like checkout, update nav too
+        updateNavbarCart();
 
     } catch (error) {
         console.error(error);

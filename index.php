@@ -1,5 +1,6 @@
 <?php
 // index.php - Router SPA
+ob_start();
 session_start();
 
 // Detectamos si es una petición AJAX (SPA)
@@ -16,7 +17,6 @@ if (!$is_ajax) {
 // 2. Enrutador: Carga CONTROLLERS directamente, no resources "envoltorio"
 switch ($accio) {
     case 'llistar-categories':
-        // CAMBIO: Apuntamos al controller, no al resource/llistar_categories.php antiguo
         include __DIR__ . '/controller/llistar_categories_c.php'; 
         break;
     
@@ -57,7 +57,6 @@ switch ($accio) {
         break;
     
     default:
-        // Para la portada, si no tienes controller, carga la vista directa (sin <html> extra)
         include __DIR__ . '/resource/portada.php'; 
         break;
 }
@@ -67,4 +66,5 @@ if (!$is_ajax) {
     echo '</main>';
     include __DIR__ . '/resource/footer_common.php';
 }
+ob_end_flush();
 ?>

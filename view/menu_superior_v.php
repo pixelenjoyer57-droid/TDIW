@@ -25,8 +25,8 @@
                     🛒 Carrito
                     <?php if ($carrito_total_items > 0): ?>
                         <span class="cart-badge">
-                            <?php echo $carrito_total_items; ?> | <?php echo number_format($carrito_total_precio, 2); ?>€
-                        </span>
+                            <?php echo $carrito_total_items; ?> | <span id="header-total"><?php echo number_format($carrito_total_precio, 2); ?>€</span>
+                            </span>
                     <?php endif; ?>
                 </a>
                 
