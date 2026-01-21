@@ -64,8 +64,49 @@
 
 <script>
 function agregarAlCarrito(productoId) {
-    const cantidad = document.getElementById('cantidad').value;
-    alert(`Producto agregado al carrito\nProducto ID: ${productoId}\nCantidad: ${cantidad}`);
-    // TODO: Implementar funcionalidad de carrito en sesiones posteriores
+    const cantidadSelect = document.getElementById('cantidad');
+    const cantidad = cantidadSelect ? cantidadSelect.value : 1;
+    const btn = document.querySelector('.btn-primary'); // Seleccionamos el botón para dar feedback
+
+    // Feedback visual inmediato
+    const textoOriginal = btn.innerText;
+    btn.innerText = "Añadiendo...";
+    btn.disabled = true;
+
+    fetch('controller/carrito_add_c.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            producto_id: productoId,
+            cantidad: parseInt(cantidad)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerText = "✅ ¡Añadido!";
+            btn.style.backgroundColor = "var(--color-success)";
+            setTimeout(() => {
+                btn.innerText = textoOriginal;
+                btn.disabled = false;
+                btn.style.backgroundColor = ""; // Volver al color original
+            }, 2000);
+        } else {
+            alert("Error: " + data.error);
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+            // Si el error es por no login, redirigir
+            if(data.error === 'Debes iniciar sesión') {
+                window.location.href = 'index.php?accio=login';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.innerText = textoOriginal;
+        btn.disabled = false;
+    });
 }
 </script>

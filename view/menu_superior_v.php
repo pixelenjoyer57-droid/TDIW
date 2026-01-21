@@ -9,11 +9,14 @@
             <li class="nav-item">
                 <a href="index.php" class="nav-link">🏠 Inicio</a>
             </li>
-            
             <li class="nav-item">
                 <a href="index.php?accio=llistar-categories" class="nav-link">📋 Menú</a>
             </li>
-            
+            <li class="nav-item">
+                <a href="index.php?accio=carrito" class="nav-link">
+                    🛒 Carrito
+                </a>
+            </li>
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" id="user-dropdown-toggle">
                     👤 Usuario

@@ -34,6 +34,14 @@ switch ($accio) {
         include __DIR__ . '/controller/perfil_c.php';
         break;
     
+    case 'carrito':
+        include __DIR__ . '/resource/carrito.php'; // Crearemos este recurso abajo
+        break;
+        
+    case 'checkout':
+        include __DIR__ . '/controller/checkout_c.php';
+        break;
+    
     default:
         include __DIR__ . '/resource/portada.php';
         break;
