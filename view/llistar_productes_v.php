@@ -1,4 +1,3 @@
-<!-- view/llistar_productes_v.php -->
 <div class="productos-container">
     <div class="breadcrumb">
         <a href="index.php">🏠 Inicio</a> / 
@@ -22,8 +21,7 @@
                     <div class="producto-imagen">
                         <?php if ($producto['url_imagen']): ?>
                             <img src="<?php echo htmlspecialchars($producto['url_imagen']); ?>" 
-                                 alt="<?php echo htmlspecialchars($producto['nombre']); ?>"
-                                 loading="lazy">
+                                 alt="<?php echo htmlspecialchars($producto['nombre']); ?>" loading="lazy">
                         <?php else: ?>
                             <div class="imagen-placeholder">📦</div>
                         <?php endif; ?>
@@ -36,10 +34,8 @@
                             </a>
                         </h3>
                         
-                        
                         <div class="precio-section">
                             <span class="precio"><?php echo number_format($producto['precio'], 2); ?>€</span>
-                            
                             <?php if ($producto['stock'] > 0): ?>
                                 <span class="stock disponible">✓ Stock</span>
                             <?php else: ?>
@@ -47,8 +43,20 @@
                             <?php endif; ?>
                         </div>
                         
+                        <?php if ($producto['stock'] > 0): ?>
+                            <div class="add-cart-form" style="display: flex; gap: 5px; margin-top: 10px;">
+                                <input type="number" id="qty-<?php echo $producto['id']; ?>" 
+                                       value="1" min="1" max="10" 
+                                       style="width: 50px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                <button onclick="addToCart(<?php echo $producto['id']; ?>)" 
+                                        class="btn btn-primary btn-small">
+                                    Añadir 🛒
+                                </button>
+                            </div>
+                        <?php endif; ?>
+                        
                         <a href="index.php?accio=detall-producte&id=<?php echo htmlspecialchars($producto['id']); ?>" 
-                           class="btn btn-primary btn-small">
+                           class="btn-link-detail" style="display:block; margin-top:5px; font-size:0.9rem;">
                             Ver detalles
                         </a>
                     </div>
@@ -57,3 +65,33 @@
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+// Función AJAX para añadir al carrito
+function addToCart(productoId) {
+    const cantidadInput = document.getElementById('qty-' + productoId);
+    const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 1;
+
+    fetch('controller/carrito_add_c.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            producto_id: productoId,
+            cantidad: cantidad
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ¡Producto añadido al carrito!');
+            location.reload(); // Recargar para actualizar el contador del menú
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo añadir. Asegúrate de iniciar sesión.'));
+            if(data.error === 'Debes iniciar sesión') {
+                window.location.href = 'index.php?accio=login';
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>

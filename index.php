@@ -1,6 +1,6 @@
 <?php
 // index.php - Router (Enrutador)
-
+session_start();
 // Recogemos la acción desde la URL
 $accio = $_GET['accio'] ?? NULL;
 

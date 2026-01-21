@@ -105,7 +105,8 @@ function verificarLogin($email, $password) {
 function getUsuarioById($id) {
     global $conn;
     
-    $sql = "SELECT id, nombre_usuario, email, nombre, apellido, numero_telefono, fecha_registro
+    // CORRECCIÓN: Añadido 'imagen_perfil' a la lista de campos
+    $sql = "SELECT id, nombre_usuario, email, nombre, apellido, numero_telefono, fecha_registro, imagen_perfil
             FROM usuario 
             WHERE id = $1";
     

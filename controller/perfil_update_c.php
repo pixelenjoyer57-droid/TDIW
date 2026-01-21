@@ -1,57 +1,69 @@
 <?php
 // controller/perfil_update_c.php
-if (session_status() === PHP_SESSION_NONE) session_start();
-header('Content-Type: application/json');
+// Limpiamos cualquier salida previa (warnings, espacios en blanco)
+ob_start();
 
-if(!isset($_SESSION['usuario_id'])) {
-    echo json_encode(["success" => false, "error" => "No autenticado"]);
-    exit;
-}
+session_start();
+header('Content-Type: application/json');
 
 require_once __DIR__ . '/../model/usuario_m.php';
 
-$response = ["success" => false];
+$response = ['success' => false, 'error' => 'Error desconocido'];
 
 try {
-    // 1. Actualizar Teléfono
-    if (isset($_POST['telefono'])) {
-        $telefono = $_POST['telefono'];
-        // Validación básica
-        if (preg_match('/^[0-9]{9,15}$/', $telefono)) {
-             actualizarTelefonoUsuario($_SESSION['usuario_id'], $telefono);
-             $response["success"] = true;
-        }
+    if (!isset($_SESSION['usuario_id'])) {
+        throw new Exception('No estás autenticado');
     }
 
-    // 2. Actualizar Imagen
-    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../resource/img/usuarios/';
-        if (!file_exists($uploadDir)) mkdir($uploadDir, 0755, true);
+    $usuario_id = $_SESSION['usuario_id'];
 
-        $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
-        if(!in_array(strtolower($ext), ['jpg','jpeg','png','gif'])) {
-            throw new Exception("Formato no válido");
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // 1. Actualizar teléfono
+        if (isset($_POST['telefono'])) {
+            $telefono = trim($_POST['telefono']);
+            actualizarTelefonoUsuario($usuario_id, $telefono);
         }
 
-        // Nombre único para evitar caché y colisiones
-        $newFileName = 'user_' . $_SESSION['usuario_id'] . '.' . $ext;
-        $destPath = $uploadDir . $newFileName;
+        // 2. Subida de imagen
+        if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['imagen'];
+            
+            // Validaciones
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($file['type'], $allowedTypes)) {
+                throw new Exception("Formato no válido. Usa JPG, PNG o GIF.");
+            }
+
+            // Definir ruta absoluta
+            $uploadDir = __DIR__ . '/../resource/img/usuarios/';
+            
+            // Intentar crear carpeta si no existe
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    throw new Exception("No se pudo crear el directorio de imágenes.");
+                }
+            }
+
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $fileName = 'user_' . $usuario_id . '_' . time() . '.' . $ext;
+            $targetPath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                // Ruta relativa para la BD (sin ../)
+                $dbPath = 'resource/img/usuarios/' . $fileName;
+                actualizarImagenUsuario($usuario_id, $dbPath);
+            } else {
+                throw new Exception("Falló al mover el archivo. Revisa permisos de carpeta.");
+            }
+        }
         
-        if(move_uploaded_file($_FILES['imagen']['tmp_name'], $destPath)) {
-            // Guardar ruta relativa en BD (importante para HTML)
-            $webPath = 'resource/img/usuarios/' . $newFileName;
-            
-            // Necesitas crear esta función en usuario_m.php
-            actualizarImagenUsuario($_SESSION['usuario_id'], $webPath);
-            
-            $response["success"] = true;
-            $response["new_image"] = $webPath;
-        }
+        $response = ['success' => true, 'message' => 'Perfil actualizado'];
     }
-
-    echo json_encode($response);
-
 } catch (Exception $e) {
-    echo json_encode(["success" => false, "error" => $e->getMessage()]);
+    $response = ['success' => false, 'error' => $e->getMessage()];
 }
-?>  
+
+// Limpiar buffer y enviar JSON puro
+ob_end_clean();
+echo json_encode($response);
+?>
